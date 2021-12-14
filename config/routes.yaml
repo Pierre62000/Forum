@@ -1,0 +1,6 @@
+index:
+    path: /
+    controller: App\Controller\StaticController::accueil
+authentication_token:
+    path: /api/authentication_token
+    methods: ['POST']

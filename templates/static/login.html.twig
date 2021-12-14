@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - {{ parent() }} {% endblock %}
+
+
+{% block stylesheets %}
+
+<style>
+
+.div {
+    width: 100%;
+    height: 20%;
+    margin: 0 auto;
+}
+
+table {
+    border:solid gray 2px;
+    border-radius:6px;
+}
+
+thead{
+    border:solid gray 2px;
+}
+
+td, th {
+    border-top:solid gray 2px;
+    border-bottom:solid gray 2px;
+}
+
+th {
+    border-right: none;
+    border-left: none;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+    <h1 class="h3 mb-3 font-weight-normal">Connexion</h1>
+    <label for="inputEmail">Email</label>
+    <input type="email" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
+    <label for="inputPassword">Mot de passe</label>
+    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+
+    <br>
+    <button class="btn btn-lg btn-primary" type="submit" id="login">Se connecter</button>
+
+</div>
+
+<br><br>
+<h1 class="h4 mb-3 font-weight-normal">pierre.ritzzo@hotmail.com</h1>
+<h1 class="h4 mb-3 font-weight-normal">pierre</h1>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+
+$(document).ready(function() {
+
+    var inputEmail;
+    var inputPassword;
+    var bt = document.getElementById("login");
+    bt.addEventListener("click", btClick, false);
+    function btClick(){
+        inputEmail = document.getElementById("inputEmail").value;
+        inputPassword = document.getElementById("inputPassword").value;
+        auth();
+    }
+
+    function auth() {
+        var request = $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            url: "https://s3-4377.nuage-peda.fr/forum/api/authentication_token",
+            method: "POST",
+            data: JSON.stringify({
+                email: inputEmail,
+                password: inputPassword,
+            }),
+            dataType: "json",
+            beforeSend: function (xhr) {
+                xhr.overrideMimeType("application/json; charset=utf-8");
+            }
+        });
+
+        request.done(function (msg) {
+            console.log(msg.token);
+            localStorage.setItem('token', msg.token);
+        });
+
+        request.fail(function (jqXHR, textStatus, error) {
+            console.log(error);
+        });
+    }
+
+});
+
+</script>
+
+{% endblock %}

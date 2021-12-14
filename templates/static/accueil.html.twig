@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - {{ parent() }} {% endblock %}
+
+
+{% block stylesheets %}
+
+<style>
+
+#parent{
+    border: solid blue;
+    background-color: #ADD8E6;
+}
+
+#réponse{
+    border: solid green;
+    width: 75%;
+    background-color: rgba(51, 170, 51, .4);
+}
+
+hr.rounded {
+  border-top: 8px solid #bbb;
+  border-radius: 5px;
+  background: #000000;
+  border-bottom: 1px solid black;
+}
+
+textarea{
+    height: 25px;
+    display: block;
+    overflow: hidden;
+    resize: none;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <br>
+    <button type="button" class="btn btn-primary" id="nouveauMessage" data-bs-toggle="modal" data-bs-target="#exampleModal">Nouveau</button>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Créer un message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="inputTitre">Titre</label>
+                <textarea name="inputTitre" id="inputTitre" class="form-control" required autofocus></textarea>
+                <label for="inputContenu">Contenu</label>
+                <textarea name="inputContenu" id="inputContenu" class="form-control" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="valider">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+
+$(document).ready(function() {
+
+    var createBtn = document.getElementById("nouveauMessage");
+    var valider = document.getElementById("valider");
+    var parents = [];
+
+    if (localStorage.getItem("token") === null){
+        createBtn.hidden = true;
+    } else{
+        createBtn.hidden = false;
+        createBtn.addEventListener("click", nouveauMessage, false);
+        function nouveauMessage(){
+            createBtn.hidden = false;
+        }
+
+        valider.addEventListener("click", create, false);
+        function create(){
+            inputTitre = document.getElementById("inputTitre").value;
+            inputContenu = document.getElementById("inputContenu").value;
+            post();
+        }
+    }
+
+    function post() {
+        var request = $.ajax({
+            headers: {
+                'Accept': 'application/ld+json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Content-Type': 'application/ld+json'
+            },
+            url: "https://s3-4377.nuage-peda.fr/forum/api/messages",
+            method: "POST",
+            data: JSON.stringify({
+                titre: inputTitre,
+                contenu: inputContenu,
+                datePoste: new Date().getTimezoneOffset()/60,
+                messages: parents
+            }),
+            beforeSend: function (xhr) {
+                xhr.overrideMimeType("application/json; charset=utf-8");
+            }
+        });
+        request.done(function (msg, textStatus, jqXHR) {
+            console.log(msg);
+        });
+        // Fonction qui se lance lorsque l’accès au web service provoque une erreur 
+        request.fail(function (jqXHR, textStatus, error) {
+            console.log(error);
+        });
+    }
+
+    function getMessages(){
+        var forum = document.getElementById('forum');
+        var request= $.ajax({
+            url: "https://s3-4377.nuage-peda.fr/forum/api/messages",
+            method: "GET",
+            dataType: "json",
+            beforeSend: function( xhr ) {
+                xhr.overrideMimeType( "application/json; charset=utf-8" );
+            }
+        });
+        request.done(function( msg ) {
+            $.each(msg, function(index,e){
+
+                var newDiv = document.createElement("div");
+                var réponses = '';
+                
+                date = new Date(e.datePoste);
+                if (e.parent == null ) {
+                    $.each(e.messages, function(index,en){
+                        
+                        //réponses += '<a id="myLink" onclick="getMessageID();" href="https://https://s3-4377.nuage-peda.fr/forum/message">' + en.contenu + '</a><br>';
+                        réponses += en.contenu + '<br> <hr class="rounded"> ';
+                        
+                    });
+                    newDiv.innerHTML = '<div class="container"><div class="card text-dark bg-white mt-5 border-primary" id="parent"><p>Titre : '+e.titre+'</p><p>Utilisateur : '+e.user.nom+' '+e.user.prenom+'</p><p>Contenu : '+e.contenu+'</p><p>Date de création : '+date.toLocaleString('fr-FR')+'</p></div><div class="card" id="réponse">' + réponses +'</div></div>';
+                }
+                document.getElementsByTagName('body')[0].appendChild(newDiv);
+            });
+            console.log(msg);
+        });
+        request.fail(function(jqXHR, textStatus, error) {
+            alert(error);
+        });
+    }
+    getMessages();
+});
+
+</script>
+
+{% endblock %}

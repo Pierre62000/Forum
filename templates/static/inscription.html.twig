@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription - {{ parent() }} {% endblock %}
+
+
+{% block stylesheets %}
+
+<style>
+
+.div {
+    width: 100%;
+    height: 20%;
+    margin: 0 auto;
+}
+
+table {
+    border:solid gray 2px;
+    border-radius:6px;
+}
+
+thead{
+    border:solid gray 2px;
+}
+
+td, th {
+    border-top:solid gray 2px;
+    border-bottom:solid gray 2px;
+}
+
+th {
+    border-right: none;
+    border-left: none;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+    <h1 class="h3 mb-3 font-weight-normal">S'inscrire</h1>
+    <label for="inputEmail">Email</label>
+    <input type="email" name="email" id="inputEmail" class="form-control" required autofocus>
+    <label for="inputPseudo">Pseudo</label>
+    <input type="text" name="pseudo" id="inputPseudo" class="form-control" required>
+    <label for="inputNom">Nom</label>
+    <input type="text" name="nom" id="inputNom" class="form-control" required>
+    <label for="inputPrenom">Prenom</label>
+    <input type="text" name="prenom" id="inputPrenom" class="form-control" required>
+    <label for="inputPassword">Mot de passe</label>
+    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+
+    <br>
+    <button class="btn btn-lg btn-primary" type="submit" id="signup">S'inscrire</button>
+
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+
+$(document).ready(function() {
+
+    var inputEmail;
+    var inputPseudo;
+    var inputNom;
+    var inputPrenom;
+    var inputPassword;
+    var date;
+    var roleUser = ['ROLE_USER'];
+    var message = [];
+    
+    var bt = document.getElementById("signup");
+    bt.addEventListener("click", btClick, false);
+    function btClick(){
+        inputEmail = document.getElementById("inputEmail").value;
+        inputPseudo = document.getElementById("inputPseudo").value;
+        inputNom = document.getElementById("inputNom").value;
+        inputPrenom = document.getElementById("inputPrenom").value;
+        inputPassword = document.getElementById("inputPassword").value;
+        post();
+    }
+
+    function post() {
+        var request = $.ajax({
+            headers: {
+                'Accept': 'application/ld+json',
+                'Content-Type': 'application/ld+json',
+            },
+            url: "https://s3-4377.nuage-peda.fr/forum/api/users",
+            method: "POST",
+            data: JSON.stringify({
+                email: inputEmail,
+                roles: roleUser,
+                nom: inputNom,
+                prenom: inputPrenom,
+                password: inputPassword,
+                dateInscription: new Date().getTimezoneOffset()/60,
+                messages: message,
+                pseudo: inputPseudo
+            }),
+            beforeSend: function (xhr) {
+                xhr.overrideMimeType("application/json; charset=utf-8");
+            }
+        });
+        request.done(function (msg, textStatus, jqXHR) {
+            console.log(msg);
+        });
+        // Fonction qui se lance lorsque l’accès au web service provoque une erreur 
+        request.fail(function (jqXHR, textStatus, error) {
+            console.log(error);
+        });
+    }
+});
+
+</script>
+
+{% endblock %}
